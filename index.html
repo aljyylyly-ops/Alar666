@@ -2,56 +2,33 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>مشاركة الموقع الجغرافي</title>
+    <title>إرسال بيانات إلى الخادم</title>
 </head>
 <body>
-    <h2>طلب مشاركة الموقع الجغرافي</h2>
-    <p>اضغط على الزر أدناه لمشاركة موقعك مع البوت:</p>
-    <button onclick="getLocation()">مشاركة موقعي</button>
+    <h2>نموذج التواصل</h2>
+    <button onclick="sendData()">إرسال التنبيه</button>
 
     <script>
-        // إدخال توكن البوت ومعرف الشات (لأغراض التطوير فقط)
-        const TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN";
-        const CHAT_ID = "YOUR_CHAT_ID";
-
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(sendToTelegram, showError);
-            } else {
-                alert("المتصفح الخاص بك لا يدعم خدمة تحديد الموقع.");
-            }
-        }
-
-        function sendToTelegram(position) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            const message = `تم استلام موقع جديد:\nخط العرض: ${lat}\nخط الطول: ${lon}\nرابط الخريطة: https://maps.google.com/?q=${lat},${lon}`;
-
-            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+        function sendData() {
+            // إرسال طلب إلى الخادم الخلفي المحمر
+            fetch('http://localhost:5000/api/send-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
-                    chat_id: CHAT_ID,
-                    text: message
+                    content: "تم النقر على الزر من قبل المستخدم."
                 })
             })
             .then(response => response.json())
-            .then(data => alert("تم إرسال الموقع بنجاح!"))
-            .catch(error => console.error("خطأ:", error));
-        }
-
-        function showError(error) {
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    alert("تم رفض طلب الحصول على الموقع.");
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    alert("معلومات الموقع غير متوفرة.");
-                    break;
-                case error.TIMEOUT:
-                    alert("انتهت مهلة الطلب.");
-                    break;
-            }
+            .then(result => {
+                if (result.status === "success") {
+                    alert("تمت العملية بنجاح!");
+                } else {
+                    alert("حدث خطأ: " + result.message);
+                }
+            })
+            .catch(error => console.error("Error:", error));
         }
     </script>
 </body>
